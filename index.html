@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+	<link rel="stylesheet" href="assets/CSS/bootstrap/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/CSS/style.css">
+</head>
+<body>
+	<div id='myMap' style='width: 100%; height: 200vh; position: relative;'>
+	<script type='text/javascript'>
+	var map
+		function loadMapScenario() {
+			map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+				/* No need to set credentials if already passed in URL */
+				center: new Microsoft.Maps.Location(3.158395, 101.712953),
+				zoom: 12
+			});
+			Microsoft.Maps.loadModule('Microsoft.Maps.Traffic', function () {
+				var manager = new Microsoft.Maps.Traffic.TrafficManager(map);
+				manager.show();
+			});
+			Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
+				var options = {
+					maxResults: 4,
+					map: map
+					
+				};
+				var startManager = new Microsoft.Maps.AutosuggestManager(options);
+				var endManager = new Microsoft.Maps.AutosuggestManager(options);
+				var stopManager=new Microsoft.Maps.AutosuggestManager(options);
+				startManager.attachAutosuggest('#startSearchBox', '#startSearchBoxContainer', selectedStartSuggestion);
+				endManager.attachAutosuggest('#endSearchBox','#endSearchBoxContainer',selectedEndSuggestion)
+				stopManager.attachAutosuggest('#stopSearch','#stopSearchContainer',stopSuggestion)
+				
+			});
+			
+			function selectedStartSuggestion(suggestionResult) {
+				map.entities.clear();
+				map.setView({ bounds: suggestionResult.bestView });
+				var pushpin = new Microsoft.Maps.Pushpin(suggestionResult.location);
+				map.entities.push(pushpin);
+				document.getElementById('startLat').value=suggestionResult.location.latitude;
+				document.getElementById('startLong').value=suggestionResult.location.longitude;
+			
+			}
+			function selectedEndSuggestion(suggestionResult) {
+				map.entities.clear();
+				map.setView({ bounds: suggestionResult.bestView });
+				var pushpin = new Microsoft.Maps.Pushpin(suggestionResult.location);
+				map.entities.push(pushpin);
+				document.getElementById('endLat').value=suggestionResult.location.latitude;
+				document.getElementById('endLong').value=suggestionResult.location.longitude;
+			
+			}
+			function stopSuggestion(suggestionResult){
+				map.entities.clear();
+				map.setView({ bounds: suggestionResult.bestView });
+				var pushpin = new Microsoft.Maps.Pushpin(suggestionResult.location);
+				map.entities.push(pushpin);
+				document.getElementById('StopsLat').value=suggestionResult.location.latitude;
+				document.getElementById('StopsLong').value=suggestionResult.location.longitude;
+			
+			}
+			
+			   //Load the directions module.
+		
+		}
+	    function GetMap(agent,start,end,wayPoints)
+        {
+            //Load the directions module.
+            Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
+                
+				//Create an instance of the directions manager.
+                directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
+                //Create waypoints to route between.
+                var startWayPoint = new Microsoft.Maps.Directions.Waypoint({ address:agent+':start' ,location:new Microsoft.Maps.Location(start.latitude, start.longitude)  });
+                directionsManager.addWaypoint(startWayPoint);
+				//console.log(wayPoints[0])
+						
+				for(var i=0;i<wayPoints.length;i++){
+				var stopWayPoint = new Microsoft.Maps.Directions.Waypoint({ address:agent+':stop' ,location:new Microsoft.Maps.Location(wayPoints[i].latitude,wayPoints[i].longitude)  });
+                directionsManager.addWaypoint(stopWayPoint);
+				}
+                var endWayPoint = new Microsoft.Maps.Directions.Waypoint({ address: agent+':end', location: new Microsoft.Maps.Location(end.latitude, end.longitude) });
+                directionsManager.addWaypoint(endWayPoint);
+                //Specify the element in which the itinerary will be rendered.
+                directionsManager.setRenderOptions({ itineraryContainer: '#directionsItinerary' });
+                //Calculate directions.
+                directionsManager.calculateDirections();
+				trafficManager = new Microsoft.Maps.Traffic.TrafficManager(map);
+				trafficManager.show();
+            });
+			Microsoft.Maps.loadModule('Microsoft.Maps.Traffic', function () {
+            //Create an instance of the traffic manager and bind to map.
+            trafficManager = new Microsoft.Maps.Traffic.TrafficManager(map);
+            //Display the traffic data layer.
+            trafficManager.show();
+        });
+        }
+		
+	</script>
+	<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=Ar3b33H3r7xCHi8korsQrfBafeapBZxO7OCrx5OAQsDuLYTZ_nFgIcez08hUTEje&callback=loadMapScenario' async defer></script>
+
+	<div id="clonedInput1" class="cloneDrivers form-left" style="width: 30%; float:left">
+		<div class="form-field form-required form-group w-50">
+		  <label for="your-name">Agent name:</label>
+		   <input class="form-control form-control-sm" name="yourName" id="yourName" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+			<label for="startPosition">Search start position:</label>
+		    <div id='startSearchBoxContainer'><input class="form-control form-control-sm" type= 'text' id= 'startSearchBox'/></div>
+			<div id='startPrintoutPanel'></div>
+		</div>
+		
+		<div class="form-field form-group w-50">
+			<label for="startLat">Search end position:</label>
+			<div id='endSearchBoxContainer'><input class="form-control form-control-sm	" type= 'text' id= 'endSearchBox'/></div>
+			<div id='endPrintoutPanel'></div>
+			</div>
+		
+		  <p class="lead">OR</p>
+		<div class="form-field form-group w-50">
+		  <label for="startLat">Start latitude:</label>
+		   <input class="form-control form-control-sm" name="startLat" id="startLat" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+		  <label for="startLong">Start longitude:</label>
+		   <input class="form-control form-control-sm" name="startLong" id="startLong" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+		  <label for="endLat">End latitude:</label>
+		   <input class="form-control form-control-sm" name="endLat" id="endLat" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+		  <label for="endLong">End longitude:</label>
+		   <input class="form-control form-control-sm" name="endLong" id="endLong" type="text" value="" size="40" aria-required="true">
+	   </div>
+	   <div class="form-field form-group w-50">
+		<label for="endLong">Capacity (tons):</label>
+		 <input class="form-control form-control-sm" name="vehicleCapacity" id="vehicleCapacity" type="text" value="" size="40" aria-required="true">
+	 </div>
+			 <div class="actions text-center">
+			  <button class="clone btn btn-success btn-sm">Add Driver</button> 
+			  <button class="remove btn btn-danger btn-sm">Remove Driver</button>			  
+		  </div> 
+		  <div class="form-field form-group w-50">
+			<label for="startPosition">Search a stop location:</label>
+		    <div id='stopSearchContainer'><input class="form-control form-control-sm" type= 'text' id= 'stopSearch'/></div>
+			<div id='stopSearchPanel'></div>
+		</div>
+		<p class="lead">OR</p>
+	  <div id="clonedInput2" class="cloneStops" style="width: 100%; float:left-side">
+		  <div class="form-field form-group w-50">
+			  <label for="StopsLat">Stop latitude:</label>
+			  <input class="form-control form-control-sm" name="StopsLat" id="StopsLat" type="text" value="" size="40" aria-required="true">
+		</div>
+		
+		<div class="form-field form-group w-50">
+			  <label for="StopsLong">Stop longitude:</label>
+			  <input class="form-control form-control-sm" name="StopsLong" id="StopsLong" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+			  <label for="Priority">Priority:</label>
+			  <input class="form-control form-control-sm" name="Priority" id="Priority" type="text" value="" size="40" aria-required="true">
+		</div>
+		<div class="form-field form-group w-50">
+			<label for="Priority">Quantity (tons):</label>
+			<input class="form-control form-control-sm" name="stopQuantity" id="stopQuantity" type="text" value="" size="40" aria-required="true">
+	  </div>
+	  
+		<div class="actions text-center">
+			  <button class="cloneStop btn btn-success btn-sm">Add Stop</button> 
+			  <button class="removeStop btn btn-danger btn-sm">Remove Stop</button>
+		  </div> 
+	  </div>
+	  <br>
+		<select id="selectTraffic" class="form-control form-control-sm">
+			<option value="TrafficRequest" selected="selected">With traffic</option>
+			<option value="SimpleRequest">Without traffic</option>
+		</select> 
+		<br>
+	   <div class="actions1 text-center" style="margin:10px auto 0px auto;"> 
+		<button class="submit btn btn-secondary btn-sm">Submit</button>
+	  </div>
+	</div>
+</div>
+  <br>
+  	<table  id="agent-itineraries" class="table table-dark text-center" border="1">
+		<thead>
+		<tr>
+			<th scope="col">Agent's Name</th>
+			<th scope="col">Start Point</th>
+			<th scope="col" colspan="20">locations</th>	
+		</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+
+<!-- Agents Info Table -->
+<table  id="agent-info" class="table table-dark text-center" border="1">
+	<thead>
+	<tr>
+		<th scope="col">Agent's Name</th>
+		<th scope="col">Call time</th>
+		<th scope="col">distance</th>
+		<th scope="col">capacity</th>	
+	</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+<!-- Agents Info Table -->
+
+<!-- START TIMELINE -->
+<div class="resultItineraryTable c-table">
+	<table class="table table-striped table-sm ">
+	  <thead class="thread-light">
+		<tr>
+		  <th scope="col">Stop</th>
+		  <th scope="col">Agent</th>
+		  <th scope="col">Start Time</th>
+		  <th scope="col">Duration</th>
+		  <th scope="col">End Time</th>
+		  <th scope="col">Location</th>
+		  <th scope="col">Priority</th>
+		</tr>
+	  </thead>
+	  <tbody id="resultTableRows"></tbody>
+	</table>
+  </div>
+
+<div id="timeline"></div>
+<!-- END TIMELINE -->
+
+
+			
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script>		
+		var colors = [
+		"#008272",
+		"#0078d4",
+		"#00bcf2 ",
+		"#00B294",
+		"Chartreuse",
+		"LightSalmon",
+		"LightSkyBlue",
+		"Sienna",
+		"DarkKhaki",
+		"cyan"
+		];
+
+		function updateResultTable(n) {
+			let t = "";
+			$.each(n.agentItineraries, function(n, i) {
+				let u = 0,
+				r = 1;
+				$.each(i.instructions, function(f, e) {
+				(e.instructionType === "VisitLocation" ||
+					e.instructionType === "LeaveFromStartPoint" ||
+					e.instructionType === "ArriveToEndPoint") &&
+					((t +=
+					"<tr><td>" +
+					n +
+					"-" +
+					++u +
+					'</td><td style="color:#ffffff;background:' +
+					colors[n] +
+					'">' +
+					i.agent.name +
+					"</td>"),
+					e.instructionType === "LeaveFromStartPoint"
+					? (t +=
+						"<td>Shift" +
+						r +
+						" Start: " +
+						e.startTime +
+						"</td><td></td><td></td>")
+					: e.instructionType === "ArriveToEndPoint"
+					? ((t +=
+						"<td>Shift" +
+						r +
+						" End: " +
+						e.startTime +
+						"</td><td></td><td></td>"),
+						r++)
+					: (t +=
+						"<td>" +
+						e.startTime +
+						"</td><td>" +
+						e.duration +
+						"</td><td>" +
+						e.endTime +
+						"</td>"),
+					(t +=
+					"<td>" +
+					e.itineraryItem.location.latitude.toFixed(6) +
+					"," +
+					e.itineraryItem.location.longitude.toFixed(6) +
+					"</td><td>" +
+					e.itineraryItem.priority +
+					"</td></tr>"));
+				});
+			});
+			$("#resultTableRows").html(t);
+			}
+
+
+		function renderTimeline(n) {
+		var u = 0,
+			f = 1,
+			r = n.agentItineraries.length,
+			t =
+			'<svg id="svgid" height="' +
+			r * 85 +
+			'px" width="1000px" xmlns="http://www.w3.org/2000/svg" style="overflow-x:scroll; overflow-y:scroll;" viewboxTaco="0 0 1000 ' +
+			r * 85 +
+			'">',
+			i;
+		t += '<g id="timelinePanel" transform="translate(10,0) scale(1,1)">';
+		i = 0;
+		$.each(n.agentItineraries, function(n, r) {
+			var c = r.agent.name,
+			h = 1,
+			e = f * 75,
+			o = 1,
+			s = colors[u % 10];
+			t +=
+			'<rect x="-10" y="' +
+			(e - 15) +
+			'" width="95" height="25" style="fill:' +
+			s +
+			'" />';
+			t +=
+			'<text x="-7" y="' +
+			(e + 2) +
+			'" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:white;">' +
+			c +
+			'</text><line id="' +
+			c.replace(" ", "-") +
+			'" x1="100" y1="' +
+			e +
+			'" x2="100%" y2="' +
+			e +
+			'" class="normalThickness" style="stroke:' +
+			s +
+			';" />';
+			$.each(r.instructions, function(n, r) {
+			var u, f;
+			r.instructionType === "LeaveFromStartPoint"
+				? ((u = o * 100),
+				(f = 4),
+				o > 9 && (f = 8),
+				(t +=
+					'<circle cx="' +
+					u +
+					'" cy="' +
+					e +
+					'" r="10" style="fill:' +
+					s +
+					'"/><text x="' +
+					(u - f) +
+					'" y="' +
+					(e + 5) +
+					'" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:white;">' +
+					o +
+					'</text><text x="' +
+					u +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					u +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">Shift ' +
+					h +
+					' Start</text><text x="' +
+					(u + 15) +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					(u + 15) +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">' +
+					r.startTime.split("T")[1] +
+					"</text>"),
+				o++)
+				: r.instructionType === "VisitLocation"
+				? ((u = o * 100),
+				(f = 4),
+				o > 9 && (f = 8),
+				(t +=
+					'<circle cx="' +
+					u +
+					'" cy="' +
+					e +
+					'" r="10" style="fill:' +
+					s +
+					'"/><text x="' +
+					(u - f) +
+					'" y="' +
+					(e + 5) +
+					'" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:white;">' +
+					o +
+					'</text><text x="' +
+					u +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					u +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">' +
+					r.startTime.split("T")[1] +
+					'</text><text x="' +
+					(u + 15) +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					(u + 15) +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">' +
+					r.duration +
+					'</text><text x="' +
+					(u + 30) +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					(u + 30) +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">' +
+					r.endTime.split("T")[1] +
+					"</text>"),
+				o++)
+				: r.instructionType === "ArriveToEndPoint" &&
+				((u = o * 100),
+				(f = 4),
+				o > 9 && (f = 8),
+				(t +=
+					'<circle cx="' +
+					u +
+					'" cy="' +
+					e +
+					'" r="10" style="fill:' +
+					s +
+					'"/><text x="' +
+					(u - f) +
+					'" y="' +
+					(e + 5) +
+					'" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:white;">' +
+					o +
+					'</text><text x="' +
+					u +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					u +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">Shift ' +
+					h +
+					' End</text><text x="' +
+					(u + 15) +
+					'" y="' +
+					(e - 15) +
+					'" transform="rotate(-45 ' +
+					(u + 15) +
+					"," +
+					(e - 15) +
+					')" style="font-family: SegoeUI, Helvetica,Arial,sans-serif;font-size:12px;font-weight:bold;fill:' +
+					s +
+					';">' +
+					r.startTime.split("T")[1] +
+					"</text>"),
+				o++,
+				h++);
+			i = Math.max(i, o);
+			});
+			u++;
+			f++;
+		});
+		t += "</g></svg>";
+		$("#timeline").html(t);
+		i * 110 > 1e3 &&
+			($("#svgid").attr("width", i * 110),
+			$("#svgid").attr("viewBox", "0 0 " + (i - 1) * 110 + " " + r * 85));
+		$.each(n.agentItineraries, function(n, t) {
+			var r = "#" + t.agent.name.replace(" ", "-");
+			$(r).attr("x2", (i - 1) * 100);
+		});
+		}
+		function genJSON() {
+			var b;
+				b = $('.cloneDrivers :input').serializeObject();
+				console.log(b.yourName+b.startLat);
+				var agentIti = [];		
+				$.each( function (index, agent) {
+					//build the JSON object
+					agentIti[index] = {
+							"name":b.yourName[index],
+							"shifts":[
+										{
+											"startTime": "2018-12-24T08:00:00",
+											"startLocation": 
+											{
+												"latitude":b.startLat[index],
+												"longitude":b.startLong[index]
+											},
+											"endTime": "2018-12-24T17:00:00",
+											"endLocation": 
+											{
+												"latitude":b.endLat[index],
+												"longitude":b.endLong[index]
+											}
+										}
+									],
+									"capacity": [b.vehicleCapacity[index]]
+						}
+					console.log(JSON.stringify(agentIti[index]));	
+				});		
+				
+			var c;
+				c = $('.cloneStops :input').serializeObject();
+				var stopIti = [];		
+				$.each(c.StopsLat, function (i, stop) {
+					//build the JSON object
+					stopIti[i] = {
+							"openingTime":"2018-12-24T08:00:00",
+							"closingTime":"2018-12-24T10:00:00",
+							"dwellTime": "00:31:08.3850000",
+							"priority": c.Priority[i],
+							
+							"location": {
+								"latitude": c.StopsLat[i],
+								"longitude": c.StopsLong[i]
+							}
+						}
+					console.log(JSON.stringify(stopIti[i]));	
+				});	
+		
+			var agentArr = {
+				agents: [],
+				itineraryItems: []
+			};
+			
+			$.each(b.yourName, function (ii, d) {
+				agentArr.agents.push(agentIti[ii]);
+				 console.log(JSON.stringify(agentArr));
+			});
+			$.each(c.StopsLat, function (iii, e) {
+				agentArr.itineraryItems.push(stopIti[iii]);
+				
+			});
+			var data = JSON.stringify(agentArr);
+			console.log(data);
+		
+			// Creating a XHR object 
+			let xhr = new XMLHttpRequest(); 
+			let url = "https://dev.virtualearth.net/REST/V1/Routes/OptimizeItinerary?key=AgVV_bvjq1smsTbufNPjbdaKzdwL1N3Zz3gisPGGucOorb8TXjkX-UnJaDmOxYhd"; 
+		
+			// open a connection 
+			xhr.open("POST", url, true); 
+		
+			// Set the request header i.e. which type of content you are sending 
+			xhr.setRequestHeader("Content-Type", "application/json"); 
+		
+			// Create a state change callback 
+			xhr.onreadystatechange = function () { 
+				if (xhr.readyState === 4 && xhr.status === 200) { 
+		
+					// Print received data from server  
+					var obj = JSON.parse(this.responseText);
+					$("tr:has(td)").remove();
+					$.each(obj.resourceSets[0].resources[0].agentItineraries, function (index, agent) {
+						
+						// 2.2 Create table column for Agent Name
+						var td_name = $("<td/>");
+						// 2.3 get each Agent's name
+						var span = $("<span/>");
+						name = agent.agent.name
+						span.text(name);
+						td_name.append(span);
+		
+		
+						// 2.6 Create a new row and append 3 columns (title+url, categories, tags)
+						$("#agent-itineraries").append($('<tr id="agent'+index+'"/>')
+								.append(td_name)
+						);
+						
+						// 2.4 Create table column for Start Points
+						var td_loc = $("<td/>");
+						
+						// 2.5 get each Agent's Start Point   						
+						$.each(agent.instructions, function (i, instruction) {
+							var span = $("<span/>");
+							if(instruction.instructionType == "LeaveFromStartPoint" ||instruction.instructionType == "VisitLocation"||instruction.instructionType == "ArriveToEndPoint" ){
+								span.text(instruction.itineraryItem.location.latitude+' , '+instruction.itineraryItem.location.longitude);
+							//	<!-- td_loc.append(span); -->
+								// 2.6 Create a new row and append 3 columns (title+url, categories, tags)
+								$("#agent"+index+"").append($('<td/>').append(span));
+							}
+						});	 
+					});
+				} 
+			}; 
+		
+			// Sending data with the request 
+			xhr.send(data); 
+			return false;
+		} 
+		var agentIti = []; 
+		function addUser(){
+			var b;
+			b = $('.cloneDrivers :input').serializeObject();
+			var tempObj 		
+					//build the JSON object
+					tempObj = {
+							"name":b.yourName,
+							"shifts":[
+										{
+											"startTime": "2018-12-24T00:00:00",
+											"startLocation": 
+											{
+												"latitude":b.startLat,
+												"longitude":b.startLong
+											},
+											"endTime": "2018-12-24T23:59:00",
+											"endLocation": 
+											{
+												"latitude":b.endLat,
+												"longitude":b.endLong
+											}
+										}
+									],
+							"capacity": [b.vehicleCapacity]
+						}
+					agentIti.push(tempObj);
+					alert("App says: Driver has been added!\nNumber of drivers: "+agentIti.length);
+					console.log(agentIti);	
+					GetMap(b.yourName,b.startLat,b.startLong,b.endLat,b.endLong);
+			
+					
+            
+			
+		}
+		var stopIti = [];
+		function addStop(){
+			var c;
+				c = $('.cloneStops :input').serializeObject();
+				var tempObj;		
+					tempObj = {
+							"openingTime":"2018-12-24T00:00:00",
+							"closingTime":"2018-12-24T23:59:00",
+							"dwellTime": "00:31:08.3850000",
+							"priority": c.Priority,
+							"quantity" :[c.stopQuantity],
+							"location": {
+								"latitude": c.StopsLat,
+								"longitude": c.StopsLong
+							}
+						}
+					stopIti.push(tempObj);
+					alert("App says: Stop has been added!\nNumber of stops: "+stopIti.length);
+					console.log(stopIti);
+		}
+		
+		function getDirection(){
+			var b;
+			b = $('.cloneDrivers :input').serializeObject();
+			var c;
+				c = $('.cloneStops :input').serializeObject();
+			
+			GetMap(b.yourName,b.startLat,b.startLong,b.endLat,b.endLong,c.StopsLat,c.StopsLong);
+		}
+
+		function sync(callbackurl){
+			
+				fetch(callbackurl) 
+								.then(res => res.json())
+								.then(
+									data => {
+
+										var resources = data.resourceSets[0].resources[0];
+										if(!resources.isCompleted){
+											sync(callbackurl);
+											return;
+										}
+
+										$.each(resources.agentItineraries, function (index, agent) {
+										var name=agent.agent.name
+										var start=agent.route.startLocation
+										var end=agent.route.endLocation
+										var wayPoints=agent.route.wayPoints
+										var totalTravelDistance = agent.route.totalTravelDistance;
+										var totalTravelTime = agent.route.totalTravelTime;
+;
+										var capacity = agent.agent.capacity[0];
+
+										GetMap(name,start,end,wayPoints);
+
+										//get method for route mapping
+										// 2.2 Create table column for Agent Name
+										var td_name = $("<td/>");
+										// 2.3 get each Agent's name
+										var span = $("<span/>");
+										name = agent.agent.name
+										span.text(name);
+										td_name.append(span);
+										
+
+										// 2.6 Create a new row and append 3 columns (title+url, categories, tags)
+										$("#agent-itineraries").append($('<tr id="agent'+index+'"/>')
+												.append(td_name)
+										);
+										
+										
+										
+										$("#agent-info").append($(`<tr>
+																	<td>${name}</td>
+																	<td>${totalTravelTime}</td>
+																	<td>${totalTravelDistance}</td>
+																	<td>${capacity} tons</td>
+																</tr>`));
+										// 2.4 Create table column for Start Points
+										var td_loc = $("<td/>");
+											
+
+
+										$.each(agent.instructions, function (i, instruction) {
+											var span = $("<span/>");
+											if(instruction.instructionType == "LeaveFromStartPoint" ||instruction.instructionType == "VisitLocation"||instruction.instructionType == "ArriveToEndPoint" ){
+												span.text(instruction.itineraryItem.location.latitude+' , '+instruction.itineraryItem.location.longitude);
+										
+												$("#agent"+index+"").append($('<td/>').append(span));
+											}
+										});
+										
+										
+									}
+								);	
+								updateResultTable(resources);
+								renderTimeline(resources);
+					});
+			
+			
+		}
+		
+		
+		function getResponce(){
+
+			var selectedTraffic = $("#selectTraffic :selected").val();
+
+			var agentArr = {
+				type:selectedTraffic,
+				agents: [],
+				itineraryItems: []
+			};
+			for(var i=0;i<agentIti.length;i++){
+				agentArr.agents.push(agentIti[i]);
+				
+			}
+			for(var i=0;i<stopIti.length;i++){
+				agentArr.itineraryItems.push(stopIti[i]);
+			}
+				
+			var data = JSON.stringify(agentArr);
+			
+			console.log("===>" , data);
+			
+			// Creating a XHR object 
+			let xhr = new XMLHttpRequest(); 
+			let url = "https://dev.virtualearth.net/REST/V1/Routes/OptimizeItineraryAsync?key=Ar3b33H3r7xCHi8korsQrfBafeapBZxO7OCrx5OAQsDuLYTZ_nFgIcez08hUTEje"; 
+
+			// open a connection 
+			xhr.open("POST", url, true); 
+		
+			// Set the request header i.e. which type of content you are sending 
+			xhr.setRequestHeader("Content-Type", "application/json"); 
+		
+			// Create a state change callback 
+			xhr.onreadystatechange = function () { 
+				if (xhr.readyState === 4 && xhr.status === 200) { 
+		
+					// Print received data from server  
+					var obj = JSON.parse(this.responseText);
+					var data=JSON.stringify(obj);
+					console.log("xhr =>", data)
+					$("tr:has(td)").remove();
+
+					var callbackurl = obj.resourceSets[0].resources[0].callbackUrl;
+					sync(callbackurl);
+					
+							
+				}
+		
+			}; 
+		
+			// Sending data with the request 
+			xhr.send(data); 
+			return false;
+		}
+			 
+		
+
+
+		var regex = /^(.+?)(\d+)$/i;
+		var cloneIndex = $(".cloneDrivers").length;
+		var cloneIndexStop = $(".cloneDrivers").length;
+		// adding data from fields to table
+		function appendTable(){
+			var name=$("#yourName").val();
+			var startLatitude=$("#startLat").val();
+			var startLongitude=$("#startLong").val();
+			console.log(name+" "+startLatitude+" "+startLongitude);
+			var None="None";
+			var markup="<tr><td>"+name+"</td><td>"+startLatitude+"-"+startLongitude+"</td><td>"+None+"</td><td>"+None+"</td><td>"+None+"</td><td>"+None+"</td></tr>";
+				$("#agent-itineraries tbody").append(markup);
+		}
+		function clone(){
+			$(this).parents(".cloneDrivers").clone()
+				.appendTo("body")
+				.attr("id", "cloneDrivers" +  cloneIndex)
+				.find("*")
+				.each(function() {
+					var id = this.id || "";
+					var match = id.match(regex) || [];
+					if (match.length == 3) {
+						this.id = match[1] + (cloneIndex);
+					}
+				})
+				.on('click', 'button.clone', clone)
+				.on('click', 'button.remove', remove);
+			cloneIndex++;
+		}
+		
+		function cloneStop(){
+			$(this).parents(".cloneStops").clone()
+				.appendTo("body")
+				.attr("id", "cloneStops" +  cloneIndexStop)
+				.find("*")
+				.each(function() {
+					var id = this.id || "";
+					var match = id.match(regex) || [];
+					if (match.length == 3) {
+						this.id = match[1] + (cloneIndexStop);
+					}
+				})
+				.on('click', 'button.cloneStop', cloneStop)
+				.on('click', 'button.removeStop', removeStop);
+			cloneIndexStop++;
+		}
+		
+		function removeStop(){
+			$(this).parents(".cloneStops").remove();
+		}
+		
+		function remove(){
+			$(this).parents(".cloneDrivers").remove();
+		}
+		
+		
+		$("button.clone").on("click",addUser);
+		$("button.submit").on("click", getResponce);
+		$("button.remove").on("click", remove);
+		$("button.cloneStop").on("click", addStop);
+		$("button.removeStop").on("click", removeStop);
+		
+		
+		$.fn.serializeObject = function()
+		{
+			var o = {};
+			var a = this.serializeArray();
+			$.each(a, function() {
+				if (o[this.name] !== undefined) {
+					if (!o[this.name].push) {
+						o[this.name] = [o[this.name]];
+					}
+					o[this.name].push(this.value || '');
+				} else {
+					o[this.name] = this.value || '';
+				}
+			});
+			return o;
+		};
+		</script> 
+		
+</body>
+</html>		
+    
+	
+	
